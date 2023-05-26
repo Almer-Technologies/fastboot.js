@@ -6,4 +6,5 @@ export { setDebugLevel, TimeoutError } from "./common";
 
 export { configure as configureZip } from "@zip.js/zip.js";
 
+export * from "./testJsdoc";
 // @license-end

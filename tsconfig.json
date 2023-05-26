@@ -9,7 +9,16 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        // Generate d.ts files
+        "declaration": true,
+        // This compiler run should
+        // only output d.ts files
+        "emitDeclarationOnly": true,
+        // go to js file when using IDE functions like
+        // "Go to Definition" in VSCode
+        "declarationMap": true,
+
     },
     "include": ["./src/**/*"]
 }
