@@ -9,7 +9,7 @@ import {
     EntryGetDataOptions,
     Writer,
 } from "@zip.js/zip.js";
-import {FastbootDevice, FastbootError, FlashProgressCallback, ReconnectCallback} from "./fastboot";
+import {FastbootDevice, FastbootError, ReconnectCallback} from "./fastboot";
 
 /**
  * Callback for factory image flashing progress.
@@ -390,6 +390,16 @@ export async function flashArkZip(
 
     console.log("Flashing inactive partition ", inactiveSlot);
 
+    // abl.elf
+    const ablEntry = entries.find((e) => e.filename.includes("abl.elf"));
+    console.log(`ablEntry: ${ablEntry?.filename}`);
+
+    // don't throw an error because there might be older OSes that don't have the abl.elf in the zip
+    if (ablEntry == undefined) {
+        console.error("No ablEntry found! Either this is an OS older than ver. 298 or something is wrong with " +
+            "the fastboot.js package logic")
+    }
+
     // xbl.elf
     const xblEntry = entries.find((e) => e.filename.includes("xbl.elf"));
     console.log(`xblEntry: ${xblEntry?.filename}`);
@@ -469,6 +479,21 @@ export async function flashArkZip(
     if (modemEntry == undefined) {
         throw new Error("modem.img not found in zip");
     }
+
+    console.log(`flashing abl.elf (only one file exists for both slots)`);
+    if (ablEntry) {
+        try {
+            await flashEntryBlob(
+                device,
+                ablEntry,
+                onProgress,
+                `abl`
+            )
+        } catch (e) {
+            // ignore
+        }
+    }
+
 
     console.log(`flashing xbl${inactiveSlotSuffix}`);
     await flashEntryBlob(
@@ -617,6 +642,9 @@ export async function flashArkZip(
         )
 
     }
+
+    // run a command to not turn on the device when it's plugged in for charging
+    await device.runCommand("oem off-mode-charge 1")
 
     /**
      * An additional zip can be passed to the function for cases like this - flashing the oem.img
