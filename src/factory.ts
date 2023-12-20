@@ -643,9 +643,6 @@ export async function flashArkZip(
 
     }
 
-    // run a command to not turn on the device when it's plugged in for charging
-    await device.runCommand("oem off-mode-charge 1")
-
     /**
      * An additional zip can be passed to the function for cases like this - flashing the oem.img
      * Because the first idea was to combine the oem image with the downloaded os.zip file and combine that on runtime
