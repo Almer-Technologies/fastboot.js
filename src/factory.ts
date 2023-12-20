@@ -658,7 +658,9 @@ export async function flashArkZip(
         await device.runCommand("set_active:" + inactiveSlot);
     }
 
-    await device.runCommand("erase userdata")
+    // reset to factory settings
+    await device.runCommand("erase:cache")
+    await device.runCommand("erase:userdata")
 
     await device.reboot()
 
