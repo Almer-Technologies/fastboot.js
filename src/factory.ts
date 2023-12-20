@@ -9,7 +9,7 @@ import {
     EntryGetDataOptions,
     Writer,
 } from "@zip.js/zip.js";
-import {FastbootDevice, FastbootError, FlashProgressCallback, ReconnectCallback} from "./fastboot";
+import {FastbootDevice, FastbootError, ReconnectCallback} from "./fastboot";
 
 /**
  * Callback for factory image flashing progress.
@@ -618,6 +618,8 @@ export async function flashArkZip(
 
     }
 
+    await device.runCommand("oem off-mode-charge 1")
+
     /**
      * An additional zip can be passed to the function for cases like this - flashing the oem.img
      * Because the first idea was to combine the oem image with the downloaded os.zip file and combine that on runtime
@@ -654,6 +656,8 @@ export async function flashArkZip(
     if (!flashBothSlots) {
         await device.runCommand("set_active:" + inactiveSlot);
     }
+
+    await device.runCommand("erase userdata")
 
     await device.reboot()
 
