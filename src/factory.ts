@@ -618,6 +618,7 @@ export async function flashArkZip(
 
     }
 
+    // run a command to not turn on the device when it's plugged in for charging
     await device.runCommand("oem off-mode-charge 1")
 
     /**
