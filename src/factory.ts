@@ -185,6 +185,8 @@ async function checkRequirements(device: FastbootDevice, androidInfo: string) {
     }
 }
 
+let lastUserdataEntry: Entry | undefined
+
 async function tryReboot(
     device: FastbootDevice,
     target: string,
@@ -208,7 +210,8 @@ export async function flashZip(
         _action: string,
         _item: string,
         _progress: number
-    )=> {}
+    ) => {
+    }
 ) {
     onProgress("load", "package", 0.0);
     let reader = new ZipReader(new BlobReader(blob));
@@ -362,8 +365,8 @@ export async function flashArkZip(
     blob: Blob,
     flashBothSlots?: boolean,
     additionalImages?: Blob,
-    onProgress: FactoryProgressCallback = () => {}
-
+    onProgress: FactoryProgressCallback = () => {
+    }
 ) {
 
     const reader = new ZipReader(new BlobReader(blob));
@@ -379,7 +382,7 @@ export async function flashArkZip(
     const activeSlotSuffix = activeSlot === "a" ? "_a" : "_b";
 
 
-    if(activeSlot === null) {
+    if (activeSlot === null) {
         throw new Error("Unable to determine active slot");
     }
 
@@ -541,6 +544,7 @@ export async function flashArkZip(
         onProgress,
         `userdata`
     )
+    lastUserdataEntry = userdataEntry
 
     console.log(`flashing modem${inactiveSlotSuffix}`);
     await flashEntryBlob(
@@ -575,7 +579,7 @@ export async function flashArkZip(
             onProgress,
             `boot${activeSlotSuffix}`
         )
-        
+
         console.log(`flashing dtbo${activeSlotSuffix}`);
         await flashEntryBlob(
             device,
@@ -635,9 +639,9 @@ export async function flashArkZip(
         const oemImage = additionalEntries.find((e) => e.filename.includes("oem.img"));
         console.log(`oem: ${oemImage?.filename}`);
 
-        if(oemImage) {
+        if (oemImage) {
             console.log(`flashing oem`);
-            try{
+            try {
                 await flashEntryBlob(
                     device,
                     oemImage,
@@ -658,9 +662,19 @@ export async function flashArkZip(
         await device.runCommand("set_active:" + inactiveSlot);
     }
 
-    // reset to factory settings
-    await device.runCommand("erase:userdata")
-
     await device.reboot()
 
+}
+
+export async function flashLastUserData(device: FastbootDevice) {
+    if (lastUserdataEntry == null) {
+        throw new Error("No stored lastUserDataEntry")
+    }
+    await flashEntryBlob(
+        device,
+        lastUserdataEntry,
+        () => {
+        },
+        `userdata`
+    )
 }
