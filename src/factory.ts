@@ -186,6 +186,8 @@ async function checkRequirements(device: FastbootDevice, androidInfo: string) {
     }
 }
 
+let lastUserdataEntry: Entry | undefined
+
 async function tryReboot(
     device: FastbootDevice,
     target: string,
@@ -552,6 +554,7 @@ async function flashArcSlot(
             onProgress,
             `userdata`
         )
+        lastUserdataEntry = userdataEntry
     }
 }
 
@@ -598,6 +601,9 @@ export async function flashArkZip(
         await flashArcSlot(device, activeSlotSuffix, arcFlashImages, onProgress, false);
     }
 
+    // run a command to not turn on the device when it's plugged in for charging
+    await device.runCommand("oem off-mode-charge 1")
+
     /**
     * This flag is used to signal to the frontend if the oem partition exists.
     * We try flashing it, and if it errors, then it doesn't exist, and the flag is false, and we can warn the user.
@@ -626,4 +632,17 @@ export async function flashArkZip(
     await device.reboot()
 
     return oemExists;
+}
+
+export async function flashLastUserData(device: FastbootDevice) {
+    if (lastUserdataEntry == null) {
+        throw new Error("No stored lastUserDataEntry")
+    }
+    await flashEntryBlob(
+        device,
+        lastUserdataEntry,
+        () => {
+        },
+        `userdata`
+    )
 }
