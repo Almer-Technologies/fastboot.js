@@ -573,7 +573,7 @@ async function flashArcSlot(
  * @param device fastboot device
  * @param blob zip file containing the operating system to flash (os.zip)
  * @param flashBothSlots if true, both slots will be flashed with the new os (only use when flashing over the factory image)
- * @param additionalImages zip file containing additional images to flash (e.g. oem.img)
+ * @param caseId - in order for oem.img to be created, the desired case id of the device must be specified. If undefined, the serial number of the device will not be changed.
  * @param onProgress callback for progress updates
  */
 export async function flashArkZip(
