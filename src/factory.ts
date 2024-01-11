@@ -471,7 +471,16 @@ async function flashArcSlot(
     initialFlash: boolean
 ) {
     const {
-        xblEntry, xblConfigEntry, bootEntry, dtboEntry, systemEntry, vendorEntry, vbmetaEntry, persistEntry, userdataEntry, modemEntry
+        xblEntry,
+        xblConfigEntry,
+        bootEntry,
+        dtboEntry,
+        systemEntry,
+        vendorEntry,
+        vbmetaEntry,
+        persistEntry,
+        userdataEntry,
+        modemEntry
     } = arcFlashImages;
 
     console.log(`flashing xbl${targetSlot}`);
@@ -572,7 +581,8 @@ export async function flashArkZip(
     blob: Blob,
     flashBothSlots?: boolean,
     caseId?: string,
-    onProgress: FactoryProgressCallback = () => {}
+    onProgress: FactoryProgressCallback = () => {
+    }
 ) {
 
     const reader = new ZipReader(new BlobReader(blob));
@@ -591,7 +601,7 @@ export async function flashArkZip(
 
     console.log(`Active slot: ${activeSlot}`, "Flashing inactive slot ", inactiveSlot);
 
-    const arcFlashImages  = checkExistingEntries(entries);
+    const arcFlashImages = checkExistingEntries(entries);
 
     // this is the initial flash, which will override userdata and persist
     await flashArcSlot(device, inactiveSlotSuffix, arcFlashImages, onProgress, true)
@@ -605,9 +615,9 @@ export async function flashArkZip(
     await device.runCommand("oem off-mode-charge 1")
 
     /**
-    * This flag is used to signal to the frontend if the oem partition exists.
-    * We try flashing it, and if it errors, then it doesn't exist, and the flag is false, and we can warn the user.
-    */
+     * This flag is used to signal to the frontend if the oem partition exists.
+     * We try flashing it, and if it errors, then it doesn't exist, and the flag is false, and we can warn the user.
+     */
     let oemExists = true;
 
     if (caseId) {
