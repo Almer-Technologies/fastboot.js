@@ -575,7 +575,7 @@ export async function flashArkZip(
     const reader = new ZipReader(new BlobReader(blob));
     const entries = await reader.getEntries();
 
-    // figure out the active partition
+    // figure out the active slot
     const activeSlot = await device.getVariable("current-slot");
     const activeSlotSuffix = activeSlot === "a" ? "_a" : "_b";
 
@@ -586,7 +586,7 @@ export async function flashArkZip(
     const inactiveSlot = activeSlot === "a" ? "b" : "a";
     const inactiveSlotSuffix = activeSlot === "a" ? "_b" : "_a";
 
-    console.log(`Active slot: ${activeSlot}`, "Flashing inactive partition ", inactiveSlot);
+    console.log(`Active slot: ${activeSlot}`, "Flashing inactive slot ", inactiveSlot);
 
     const arcFlashImages  = checkExistingEntries(entries);
 
@@ -594,7 +594,7 @@ export async function flashArkZip(
     await flashArcSlot(device, inactiveSlotSuffix, arcFlashImages, onProgress, true)
 
     if (flashBothSlots) {
-        console.log("Flashing active partition ", activeSlot);
+        console.log("Flashing active slot ", activeSlot);
         await flashArcSlot(device, activeSlotSuffix, arcFlashImages, onProgress, false);
     }
 
