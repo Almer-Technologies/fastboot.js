@@ -624,8 +624,8 @@ export async function flashArkZip(
         const oemImage = await createImageFile(caseId);
 
         try {
-            await device.flashBlob('oem.img', blob, (progress) => {
-                onProgress("flash", 'oem.img', progress);
+            await device.flashBlob('oem', blob, (progress) => {
+                onProgress("flash", 'oem', progress);
             });
         } catch {
             oemExists = false;
