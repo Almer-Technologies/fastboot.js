@@ -362,7 +362,8 @@ type ArcFlashImages = {
     vbmetaEntry: Entry,
     persistEntry: Entry,
     userdataEntry: Entry,
-    modemEntry: Entry
+    modemEntry: Entry,
+    ablEntry: Entry | undefined
 }
 
 /**
@@ -450,8 +451,17 @@ function checkExistingEntries(entries: Entry[]): ArcFlashImages {
         throw new Error("modem.img not found in zip");
     }
 
+    const ablEntry = entries.find(e => e.filename.includes("abl.elf"))
+    console.log(`ablEntry: ${ablEntry?.filename}`);
+
+    // don't throw an error because there might be older OSes that don't have the abl.elf in the zip
+    if (ablEntry == undefined) {
+        console.error("No ablEntry found! Either this is an OS older than ver. 298 or something is wrong with " +
+            "the fastboot.js package logic")
+    }
+
     return {
-        xblEntry, xblConfigEntry, bootEntry, dtboEntry, systemEntry, vendorEntry, vbmetaEntry, persistEntry, userdataEntry, modemEntry
+        xblEntry, xblConfigEntry, bootEntry, dtboEntry, systemEntry, vendorEntry, vbmetaEntry, persistEntry, userdataEntry, modemEntry, ablEntry
     }
 }
 
@@ -480,7 +490,8 @@ async function flashArcSlot(
         vbmetaEntry,
         persistEntry,
         userdataEntry,
-        modemEntry
+        modemEntry,
+        ablEntry
     } = arcFlashImages;
 
     console.log(`flashing xbl${targetSlot}`);
@@ -564,6 +575,20 @@ async function flashArcSlot(
             `userdata`
         )
         lastUserdataEntry = userdataEntry
+
+        if (ablEntry) {
+            try {
+                console.log(`flashing abl`);
+                await flashEntryBlob(
+                    device,
+                    ablEntry,
+                    onProgress,
+                    `abl`
+                )
+            } catch (e) {
+                console.error(`failed to flash abl with entry '${ablEntry}' with error: ${e}`)
+            }
+        }
     }
 }
 
