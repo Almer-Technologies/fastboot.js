@@ -586,7 +586,7 @@ async function flashArcSlot(
                     `abl`
                 )
             } catch (e) {
-                // ignore
+                console.error(`failed to flash abl with entry '${ablEntry}' with error: ${e}`)
             }
         }
     }
