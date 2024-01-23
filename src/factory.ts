@@ -494,6 +494,23 @@ async function flashArcSlot(
         ablEntry
     } = arcFlashImages;
 
+    console.log(`trying to flash abl`);
+    if (ablEntry) {
+        try {
+            console.log(`flashing abl${targetSlot}`);
+            await flashEntryBlob(
+                device,
+                ablEntry,
+                onProgress,
+                `abl${targetSlot}`
+            )
+        } catch (e) {
+            console.error(`failed to flash abl with entry '${ablEntry}' with error: ${e}`)
+        }
+    } else {
+        console.warn("Didn't flash abl because it was missing from the OS zip.")
+    }
+
     console.log(`flashing xbl${targetSlot}`);
     await flashEntryBlob(
         device,
@@ -576,19 +593,6 @@ async function flashArcSlot(
         )
         lastUserdataEntry = userdataEntry
 
-        if (ablEntry) {
-            try {
-                console.log(`flashing abl`);
-                await flashEntryBlob(
-                    device,
-                    ablEntry,
-                    onProgress,
-                    `abl`
-                )
-            } catch (e) {
-                console.error(`failed to flash abl with entry '${ablEntry}' with error: ${e}`)
-            }
-        }
     }
 }
 
