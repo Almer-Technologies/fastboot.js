@@ -650,7 +650,7 @@ export async function flashArkZip(
     let oemExists = true;
 
     if (caseId) {
-        oemExists = await flashOemPartition(device, caseId, onProgress);
+        oemExists = await flashOemPartition(device, caseId, onProgress, true);
     }
 
     // if only one slot is flashed(inactive), then that one becomes active
@@ -664,16 +664,26 @@ export async function flashArkZip(
     return oemExists;
 }
 
-export async function flashOemPartition(device: FastbootDevice, caseId: string, onProgress: FactoryProgressCallback = () => {}) {
+export async function flashOemPartition(device: FastbootDevice, caseId: string, onProgress: FactoryProgressCallback = () => {}, isFullFlash: boolean = false) {
     const oemImage = await createImageFile(caseId);
 
     try {
         await device.flashBlob('oem', oemImage, (progress) => {
             onProgress("flash", 'oem', progress);
         });
+
+        if (!isFullFlash) {
+            await device.reboot()
+        }
+
         return true;
     } catch {
         console.error("oem partition does not exist on this device;");
+
+        if (!isFullFlash) {
+            await device.reboot()
+        }
+
         return false;
     }
 }
