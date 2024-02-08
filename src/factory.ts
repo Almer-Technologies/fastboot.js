@@ -596,6 +596,11 @@ async function flashArcSlot(
     }
 }
 
+interface CaseInfo {
+    caseId: string,
+    signature: string,
+}
+
 
 /**
  * Flash a zip file containing a given operating system
@@ -609,10 +614,7 @@ export async function flashArkZip(
     device: FastbootDevice,
     blob: Blob,
     flashBothSlots?: boolean,
-    caseInfo?: {
-        caseId: string,
-        signature: string,
-    },
+    caseInfo?: CaseInfo,
     onProgress: FactoryProgressCallback = () => {
     }
 ) {
@@ -653,16 +655,7 @@ export async function flashArkZip(
     let oemExists = true;
 
     if (caseInfo) {
-        const oemImage = await createImageFile(caseInfo.caseId, caseInfo.signature);
-
-        try {
-            await device.flashBlob('oem', oemImage, (progress) => {
-                onProgress("flash", 'oem', progress);
-            });
-        } catch {
-            oemExists = false;
-            console.log("oem partition does not exist on this device;");
-        }
+        oemExists = await flashOemPartition(device, caseInfo, onProgress, true);
     }
 
     // if only one slot is flashed(inactive), then that one becomes active
@@ -674,6 +667,30 @@ export async function flashArkZip(
     await device.reboot()
 
     return oemExists;
+}
+
+export async function flashOemPartition(device: FastbootDevice, caseInfo: CaseInfo, onProgress: FactoryProgressCallback = () => {}, isFullFlash: boolean = false) {
+    const oemImage = await createImageFile(caseInfo.caseId, caseInfo.signature);
+
+    try {
+        await device.flashBlob('oem', oemImage, (progress) => {
+            onProgress("flash", 'oem', progress);
+        });
+
+        if (!isFullFlash) {
+            await device.reboot()
+        }
+
+        return true;
+    } catch {
+        console.error("oem partition does not exist on this device;");
+
+        if (!isFullFlash) {
+            await device.reboot()
+        }
+
+        return false;
+    }
 }
 
 export async function flashLastUserData(device: FastbootDevice) {
