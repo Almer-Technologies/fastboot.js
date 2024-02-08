@@ -602,14 +602,17 @@ async function flashArcSlot(
  * @param device fastboot device
  * @param blob zip file containing the operating system to flash (os.zip)
  * @param flashBothSlots if true, both slots will be flashed with the new os (only use when flashing over the factory image)
- * @param caseId - in order for oem.img to be created, the desired case id of the device must be specified. If undefined, the serial number of the device will not be changed.
+ * @param caseInfo - in order for oem.img to be created, the desired case id of the device must be specified and the signature from the flasher. If undefined, the serial number of the device will not be changed.
  * @param onProgress callback for progress updates
  */
 export async function flashArkZip(
     device: FastbootDevice,
     blob: Blob,
     flashBothSlots?: boolean,
-    caseId?: string,
+    caseInfo?: {
+        caseId: string,
+        signature: string,
+    },
     onProgress: FactoryProgressCallback = () => {
     }
 ) {
@@ -649,8 +652,8 @@ export async function flashArkZip(
      */
     let oemExists = true;
 
-    if (caseId) {
-        const oemImage = await createImageFile(caseId);
+    if (caseInfo) {
+        const oemImage = await createImageFile(caseInfo.caseId, caseInfo.signature);
 
         try {
             await device.flashBlob('oem', oemImage, (progress) => {
