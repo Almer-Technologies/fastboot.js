@@ -211,7 +211,8 @@ export async function flashZip(
         _action: string,
         _item: string,
         _progress: number
-    )=> {}
+    ) => {
+    }
 ) {
     onProgress("load", "package", 0.0);
     let reader = new ZipReader(new BlobReader(blob));
@@ -461,7 +462,17 @@ function checkExistingEntries(entries: Entry[]): ArcFlashImages {
     }
 
     return {
-        xblEntry, xblConfigEntry, bootEntry, dtboEntry, systemEntry, vendorEntry, vbmetaEntry, persistEntry, userdataEntry, modemEntry, ablEntry
+        xblEntry,
+        xblConfigEntry,
+        bootEntry,
+        dtboEntry,
+        systemEntry,
+        vendorEntry,
+        vbmetaEntry,
+        persistEntry,
+        userdataEntry,
+        modemEntry,
+        ablEntry
     }
 }
 
@@ -477,7 +488,8 @@ async function flashArcSlot(
     device: FastbootDevice,
     targetSlot: '_a' | '_b',
     arcFlashImages: ArcFlashImages,
-    onProgress: FactoryProgressCallback = () => {},
+    onProgress: FactoryProgressCallback = () => {
+    },
     initialFlash: boolean
 ) {
     const {
@@ -669,7 +681,12 @@ export async function flashArkZip(
     return oemExists;
 }
 
-export async function flashOemPartition(device: FastbootDevice, caseInfo: CaseInfo, onProgress: FactoryProgressCallback = () => {}, isFullFlash: boolean = false) {
+export async function flashOemPartition(
+    device: FastbootDevice,
+    caseInfo: CaseInfo,
+    onProgress: FactoryProgressCallback = () => {
+    },
+    isFullFlash: boolean = false) {
     const oemImage = await createImageFile(caseInfo.caseId, caseInfo.signature);
 
     try {
