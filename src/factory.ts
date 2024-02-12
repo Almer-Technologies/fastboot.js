@@ -211,7 +211,8 @@ export async function flashZip(
         _action: string,
         _item: string,
         _progress: number
-    )=> {}
+    ) => {
+    }
 ) {
     onProgress("load", "package", 0.0);
     let reader = new ZipReader(new BlobReader(blob));
@@ -461,7 +462,17 @@ function checkExistingEntries(entries: Entry[]): ArcFlashImages {
     }
 
     return {
-        xblEntry, xblConfigEntry, bootEntry, dtboEntry, systemEntry, vendorEntry, vbmetaEntry, persistEntry, userdataEntry, modemEntry, ablEntry
+        xblEntry,
+        xblConfigEntry,
+        bootEntry,
+        dtboEntry,
+        systemEntry,
+        vendorEntry,
+        vbmetaEntry,
+        persistEntry,
+        userdataEntry,
+        modemEntry,
+        ablEntry
     }
 }
 
@@ -477,7 +488,8 @@ async function flashArcSlot(
     device: FastbootDevice,
     targetSlot: '_a' | '_b',
     arcFlashImages: ArcFlashImages,
-    onProgress: FactoryProgressCallback = () => {},
+    onProgress: FactoryProgressCallback = () => {
+    },
     initialFlash: boolean
 ) {
     const {
@@ -596,20 +608,25 @@ async function flashArcSlot(
     }
 }
 
+interface CaseInfo {
+    caseId: string,
+    signature: string,
+}
+
 
 /**
  * Flash a zip file containing a given operating system
  * @param device fastboot device
  * @param blob zip file containing the operating system to flash (os.zip)
  * @param flashBothSlots if true, both slots will be flashed with the new os (only use when flashing over the factory image)
- * @param caseId - in order for oem.img to be created, the desired case id of the device must be specified. If undefined, the serial number of the device will not be changed.
+ * @param caseInfo - in order for oem.img to be created, the desired case id of the device must be specified and the signature from the flasher. If undefined, the serial number of the device will not be changed.
  * @param onProgress callback for progress updates
  */
 export async function flashArkZip(
     device: FastbootDevice,
     blob: Blob,
     flashBothSlots?: boolean,
-    caseId?: string,
+    caseInfo?: CaseInfo,
     onProgress: FactoryProgressCallback = () => {
     }
 ) {
@@ -649,8 +666,8 @@ export async function flashArkZip(
      */
     let oemExists = true;
 
-    if (caseId) {
-        oemExists = await flashOemPartition(device, caseId, onProgress, true);
+    if (caseInfo) {
+        oemExists = await flashOemPartition(device, caseInfo, onProgress, true);
     }
 
     // if only one slot is flashed(inactive), then that one becomes active
@@ -664,8 +681,13 @@ export async function flashArkZip(
     return oemExists;
 }
 
-export async function flashOemPartition(device: FastbootDevice, caseId: string, onProgress: FactoryProgressCallback = () => {}, isFullFlash: boolean = false) {
-    const oemImage = await createImageFile(caseId);
+export async function flashOemPartition(
+    device: FastbootDevice,
+    caseInfo: CaseInfo,
+    onProgress: FactoryProgressCallback = () => {
+    },
+    isFullFlash: boolean = false) {
+    const oemImage = await createImageFile(caseInfo.caseId, caseInfo.signature);
 
     try {
         await device.flashBlob('oem', oemImage, (progress) => {
