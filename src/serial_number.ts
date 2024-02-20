@@ -36,11 +36,14 @@ export const createImageFile = async (serialNumber: string, signature: string) =
     const padding = OEM_SIZE - version.length - signatureBuffer.length
         - CASE_ID_MAX_SIZE
 
+    const endPadding = CASE_ID_MAX_SIZE - serialNumber.length;
+
     const blob = new Blob([
         version, // 1 byte
         signature,// signature
         new Uint8Array(padding).fill(0),// padding
         serialNumber,// final 23 bytes for Serial
+        new Uint8Array(endPadding).fill(0) // padding at the end to ensure all 23 bytes are overwritten
     ])
 
     if (blob.size > OEM_SIZE) {
