@@ -373,20 +373,38 @@ type ArcFlashImages = {
  * @param entries
  */
 function checkExistingEntries(entries: Entry[]): ArcFlashImages {
-    const xblEntry = entries.find((e) => e.filename.includes("xbl.elf"));
+
+    // abl.elf OR abl.img OR no abl at all
+    // don't throw an error because there might be older OSes that don't have the abl.elf in the zip
+    let ablEntry = entries.find(e => e.filename.includes("abl.elf"))
+    if (ablEntry == undefined) {
+        ablEntry = entries.find(e => e.filename.includes("abl.img"))
+        if (ablEntry === undefined) {
+            console.error("No ablEntry found! Either this is an OS older than ver. 298 or something is wrong with " +
+                "the fastboot.js package logic")
+        }
+    }
+    console.log(`ablEntry: ${ablEntry?.filename}`);
+
+// xbl.elf OR xbl.img
+    let xblEntry = entries.find((e) => e.filename.includes("xbl.elf"));
+    if (xblEntry == undefined) {
+        xblEntry = entries.find((e) => e.filename.includes("xbl.img"));
+        if (xblEntry === undefined) {
+            throw new Error("xbl.elf not found in zip");
+        }
+    }
     console.log(`xblEntry: ${xblEntry?.filename}`);
 
-    if (xblEntry == undefined) {
-        throw new Error("xbl.elf not found in zip");
-    }
-
-    // xbl_config.elf
-    const xblConfigEntry = entries.find((e) => e.filename.includes("xbl_config.elf"));
-    console.log(`xblConfigEntry: ${xblConfigEntry?.filename}`);
-
+// xbl_config.elf OR xbl_config.img
+    let xblConfigEntry = entries.find((e) => e.filename.includes("xbl_config.elf"));
     if (xblConfigEntry == undefined) {
-        throw new Error("xbl_config.elf not found in zip");
+        xblConfigEntry = entries.find((e) => e.filename.includes("xbl_config.img"));
+        if (xblConfigEntry === undefined) {
+            throw new Error("xbl_config.elf not found in zip");
+        }
     }
+    console.log(`xblConfigEntry: ${xblConfigEntry?.filename}`);
 
     // boot.img
     const bootEntry = entries.find((e) => e.filename.includes("boot.img"));
@@ -450,15 +468,6 @@ function checkExistingEntries(entries: Entry[]): ArcFlashImages {
 
     if (modemEntry == undefined) {
         throw new Error("modem.img not found in zip");
-    }
-
-    const ablEntry = entries.find(e => e.filename.includes("abl.elf"))
-    console.log(`ablEntry: ${ablEntry?.filename}`);
-
-    // don't throw an error because there might be older OSes that don't have the abl.elf in the zip
-    if (ablEntry == undefined) {
-        console.error("No ablEntry found! Either this is an OS older than ver. 298 or something is wrong with " +
-            "the fastboot.js package logic")
     }
 
     return {
